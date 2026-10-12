@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For My Siddhi</title>
+<meta name="theme-color" content="#f7e6df">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fbf4ee; --paper:#fffaf5; --blush:#f4ddd6; --rose:#c97c7d;
+  --wine:#6e2f3c; --ink:#4b2a31; --gold:#c6a26b; --muted:#9a7b7f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{
+  font-family:'Cormorant Garamond',Georgia,serif;color:var(--ink);
+  background:radial-gradient(ellipse at 50% 0%,#fdf2ed 0%,#f7e6df 55%,#f0d6cd 100%);
+  -webkit-font-smoothing:antialiased;touch-action:manipulation;
+}
+.script{font-family:'Great Vibes',cursive;font-weight:400}
+#petals{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+.screen{
+  position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;
+  padding:max(20px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  opacity:0;visibility:hidden;transition:opacity 1s ease,visibility 0s 1s;
+}
+.screen.active{opacity:1;visibility:visible;transition:opacity 1s ease}
+.center{margin:auto 0;display:flex;flex-direction:column;align-items:center;width:100%}
+
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+.btn{
+  margin-top:28px;padding:14px 30px;border-radius:999px;font-size:1.15rem;letter-spacing:.06em;
+  background:var(--wine);color:#fdf2ed;box-shadow:0 10px 30px rgba(110,47,60,.25);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--wine);box-shadow:inset 0 0 0 1.5px var(--wine)}
+
+/* ENVELOPE */
+.env-title{font-size:clamp(2.4rem,9vw,3.6rem);color:var(--wine);text-align:center;line-height:1.1;margin:0 0 6px}
+.env-sub{font-style:italic;color:var(--muted);font-size:1.15rem;text-align:center;margin:0 0 44px;max-width:340px}
+.envelope{position:relative;width:min(340px,84vw);aspect-ratio:1.45;perspective:1200px;cursor:pointer}
+.env-back{position:absolute;inset:0;background:#e6c2b9;border-radius:8px;box-shadow:0 24px 50px rgba(110,47,60,.22)}
+.env-letter{
+  position:absolute;left:7%;right:7%;top:7%;height:82%;background:var(--paper);border-radius:4px;z-index:2;
+  display:flex;align-items:center;justify-content:center;font-size:2.6rem;color:var(--wine);
+  transition:transform 1.2s cubic-bezier(.2,.8,.2,1) .7s;
+}
+.env-front{
+  position:absolute;inset:0;z-index:3;border-radius:8px;
+  background:linear-gradient(160deg,#efd0c8,#e4bdb3);
+  clip-path:polygon(0 0,50% 56%,100% 0,100% 100%,0 100%);
+}
+.env-flap{
+  position:absolute;left:0;right:0;top:0;height:60%;z-index:4;border-radius:8px 8px 0 0;
+  background:linear-gradient(180deg,#e2b8ae,#d8a99e);clip-path:polygon(0 0,100% 0,50% 100%);
+  transform-origin:top center;transition:transform .9s ease,z-index 0s .45s;
+  -webkit-backface-visibility:hidden;
+}
+.seal{
+  position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);z-index:5;width:64px;height:64px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#a0485a,#6e2f3c 70%);color:#f6d9cf;
+  display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+  box-shadow:0 4px 12px rgba(0,0,0,.25),inset 0 -3px 6px rgba(0,0,0,.25);
+  transition:opacity .4s ease,transform .4s ease;animation:pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.07)}}
+.envelope.open .seal{opacity:0;animation:none;transform:translate(-50%,-50%) scale(.6)}
+.envelope.open .env-flap{transform:rotateX(180deg);z-index:1}
+.envelope.open .env-letter{transform:translateY(-58%)}
+.hint{margin-top:30px;font-style:italic;color:var(--muted);letter-spacing:.08em;animation:fade 2.4s ease-in-out infinite}
+@keyframes fade{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* LETTERS */
+.paper{
+  width:min(580px,100%);background:var(--paper);border-radius:6px;padding:44px 30px 40px;position:relative;
+  box-shadow:0 30px 60px rgba(110,47,60,.15);
+  background-image:linear-gradient(transparent 0,transparent 100%),radial-gradient(circle at 20% 10%,rgba(201,124,125,.05),transparent 50%);
+}
+.paper::before{content:"";position:absolute;inset:10px;border:1px solid rgba(198,162,107,.45);border-radius:4px;pointer-events:none}
+.paper .salute{font-size:2.8rem;color:var(--wine);margin:0 0 18px}
+.paper p{font-size:1.28rem;line-height:1.65;margin:0 0 16px}
+.paper .sign{text-align:right;margin-top:26px}
+.paper .sign small{display:block;font-style:italic;color:var(--muted);font-size:1.1rem}
+.paper .sign span{font-size:2.7rem;color:var(--wine);line-height:1.2}
+.ps{text-align:center;font-style:italic;color:var(--muted);margin-top:18px;font-size:1.1rem}
+
+/* DECK */
+#s-deck{justify-content:space-between}
+.deck-top{width:min(420px,100%);display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:6px}
+.deck-row{width:100%;display:flex;justify-content:space-between;align-items:center}
+.chap-label{font-size:1rem;letter-spacing:.22em;text-transform:uppercase;color:var(--rose)}
+.counter{font-style:italic;color:var(--muted);font-size:1.05rem}
+.all-btn{font-size:1rem;color:var(--wine);font-style:italic;padding:6px 2px}
+.bar{width:100%;height:3px;border-radius:3px;background:rgba(198,162,107,.25);overflow:hidden}
+.bar i{display:block;height:100%;width:1%;background:linear-gradient(90deg,var(--gold),var(--rose));transition:width .6s ease}
+
+.stage{flex:1;display:flex;align-items:center;justify-content:center;width:100%;perspective:1400px;padding:14px 0}
+.card{width:min(360px,86vw);height:min(500px,62vh);position:relative;cursor:pointer}
+.card-inner{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,.9,.3,1)}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.card.instant .card-inner{transition:none}
+.face{
+  position:absolute;inset:0;border-radius:18px;padding:30px 26px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  box-shadow:0 26px 50px rgba(110,47,60,.2);
+}
+.face::before{content:"";position:absolute;inset:12px;border:1px solid rgba(198,162,107,.6);border-radius:12px;pointer-events:none}
+.face::after{content:"";position:absolute;inset:17px;border:1px solid rgba(198,162,107,.28);border-radius:9px;pointer-events:none}
+.front{background:linear-gradient(165deg,#fffaf5 0%,#fbeee8 100%)}
+.front .lbl{letter-spacing:.3em;text-transform:uppercase;font-size:.85rem;color:var(--muted)}
+.front .num{font-size:clamp(6rem,26vw,8.2rem);color:var(--wine);line-height:1;margin:6px 0 4px}
+.front .heart{color:var(--rose);font-size:1.4rem}
+.front .tap{position:absolute;bottom:34px;font-style:italic;color:var(--muted);font-size:1rem;animation:fade 2.4s ease-in-out infinite}
+.back{background:linear-gradient(165deg,#f8e3dc 0%,#f2d3ca 100%);transform:rotateY(180deg)}
+.back .bchap{position:absolute;top:32px;font-size:1.6rem;color:var(--rose)}
+.back .txt{font-size:clamp(1.3rem,5vw,1.55rem);line-height:1.5;font-style:italic;font-weight:500;color:var(--ink);max-width:290px}
+.back .bnum{position:absolute;bottom:30px;font-size:1.9rem;color:var(--wine)}
+
+.controls{display:flex;align-items:center;gap:28px;padding-bottom:8px}
+.arrow{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,250,245,.8);box-shadow:0 8px 22px rgba(110,47,60,.15);color:var(--wine);font-size:1.4rem;transition:opacity .3s}
+.arrow:disabled{opacity:.3;cursor:default}
+.swipe-hint{font-style:italic;color:var(--muted);font-size:1rem;min-width:110px;text-align:center}
+.finish{display:none;padding:12px 22px;border-radius:999px;background:var(--wine);color:#fdf2ed;font-size:1.1rem}
+
+/* CHAPTER OVERLAY */
+#chapter{
+  position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;
+  background:rgba(251,244,238,.96);opacity:0;visibility:hidden;transition:opacity .8s ease,visibility 0s .8s;cursor:pointer;
+}
+#chapter.show{opacity:1;visibility:visible;transition:opacity .8s ease}
+#chapter .cn{letter-spacing:.35em;text-transform:uppercase;color:var(--rose);font-size:.95rem}
+#chapter .ct{font-size:clamp(3rem,13vw,4.8rem);color:var(--wine);margin:10px 0;line-height:1.1}
+#chapter .cs{font-style:italic;font-size:1.3rem;color:var(--muted)}
+#chapter .ct,#chapter .cs,#chapter .cn{transform:translateY(12px);opacity:0;transition:all 1s ease}
+#chapter.show .cn{transform:none;opacity:1;transition-delay:.2s}
+#chapter.show .ct{transform:none;opacity:1;transition-delay:.45s}
+#chapter.show .cs{transform:none;opacity:1;transition-delay:.8s}
+
+/* FINALE */
+.finale-head{font-size:clamp(2.6rem,10vw,4rem);color:var(--wine);text-align:center;margin:10px 0 4px;line-height:1.15}
+.finale-sub{font-style:italic;color:var(--muted);font-size:1.25rem;text-align:center;margin:0 0 28px}
+.btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:20px}
+.btns .btn{margin-top:22px}
+
+/* GRID */
+.grid-wrap{width:min(900px,100%);padding-bottom:40px}
+.grid-head{display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px}
+.grid-head h2{font-size:2.6rem;color:var(--wine);margin:0;font-weight:400}
+.grid-ch{font-size:2.2rem;color:var(--rose);margin:28px 0 12px;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.tile{background:rgba(255,250,245,.88);border-radius:14px;padding:18px 18px 16px;box-shadow:0 10px 24px rgba(110,47,60,.08);border:1px solid rgba(198,162,107,.3)}
+.tile .tn{font-size:2rem;color:var(--wine);line-height:1}
+.tile p{margin:8px 0 0;font-size:1.15rem;line-height:1.5;font-style:italic}
+
+.floatheart{position:fixed;z-index:30;pointer-events:none;color:var(--rose);font-size:20px;will-change:transform,opacity}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important}
+}
+</style>
+</head>
+<body>
+<canvas id="petals"></canvas>
+
+<!-- ENVELOPE -->
+<section id="s-envelope" class="screen active">
+  <div class="center">
+    <h1 class="env-title script">For my Siddhi</h1>
+    <p class="env-sub">something I have been wanting to tell you for a long time</p>
+    <div class="envelope" id="envelope" role="button" aria-label="Open the envelope">
+      <div class="env-back"></div>
+      <div class="env-letter script">Mommi</div>
+      <div class="env-front"></div>
+      <div class="env-flap"></div>
+      <div class="seal script">S</div>
+    </div>
+    <div class="hint" id="envHint">tap the seal, my love</div>
+  </div>
+</section>
+
+<!-- INTRO LETTER -->
+<section id="s-letter" class="screen">
+  <div class="center">
+    <div class="paper">
+      <div class="salute script">My Siddhi,</div>
+      <p>I know you. Not the version the world gets to see, but the one underneath it all. The girl who notices the moment someone goes quiet. The girl who fights battles at home that nobody claps for. The girl who loves so completely and never once asks to be thanked for it.</p>
+      <p>The other night I started thinking about you as a mother one day. I meant to write down a few things. It turned into a hundred, and honestly, I could have kept going.</p>
+      <p>Every card in here is something true about you. Not a compliment to make you smile. Not a guess. Just you, exactly the way I see you.</p>
+      <p>So take your time. Turn them slowly. Let yourself believe every single one.</p>
+      <div class="sign"><small>Forever yours,</small><span class="script">Varu</span></div>
+    </div>
+    <button class="btn" id="beginBtn">Open your hundred</button>
+  </div>
+</section>
+
+<!-- DECK -->
+<section id="s-deck" class="screen">
+  <div class="deck-top">
+    <div class="deck-row">
+      <span class="counter" id="counter">1 of 100</span>
+      <button class="all-btn" id="allBtn">see all ♡</button>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="chap-label" id="chapLabel"></div>
+  </div>
+
+  <div class="stage">
+    <div class="card" id="card" aria-live="polite">
+      <div class="card-inner">
+        <div class="face front">
+          <div class="lbl">reason</div>
+          <div class="num script" id="num">1</div>
+          <div class="heart">♥</div>
+          <div class="tap">tap to turn</div>
+        </div>
+        <div class="face back">
+          <div class="bchap script" id="bchap"></div>
+          <div class="txt" id="txt"></div>
+          <div class="bnum script" id="bnum"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="arrow" id="prev" aria-label="Previous">←</button>
+    <span class="swipe-hint" id="swipeHint">swipe for more</span>
+    <button class="finish" id="finishBtn">one more thing ♡</button>
+    <button class="arrow" id="next" aria-label="Next">→</button>
+  </div>
+</section>
+
+<!-- FINALE -->
+<section id="s-finale" class="screen">
+  <div class="center">
+    <h2 class="finale-head script">One hundred reasons</h2>
+    <p class="finale-sub">and still not nearly enough</p>
+    <div class="paper">
+      <div class="salute script">Siddhi,</div>
+      <p>You might wonder how I could know all of this when we have barely shared a room. But I have been paying attention. In every late night call squeezed into the only hours we have. In every time you stayed on the line through something hard instead of hanging up. In every time you laughed at something silly on a day that had been heavy.</p>
+      <p>I know the girl who takes care of everyone and asks for nothing back. I know the girl who is fighting, quietly, every single day, for a little more room to breathe. I know how much you feel, and how much of it you have had to carry by yourself.</p>
+      <p>You do not have to carry it by yourself anymore.</p>
+      <p>One day there will be tiny hands holding yours. And they will never know a single day without being loved the way you love. They will be free in all the ways you had to fight for. They will be gentle and brave, just like their mother.</p>
+      <p>And on the days you doubt yourself, I want you to come back here and read these again. Not because I wrote them. Because every single one of them is true.</p>
+      <p>I see you. I always have. I always will.</p>
+      <div class="sign"><small>All of me, always,</small><span class="script">Varu</span></div>
+    </div>
+    <div class="btns">
+      <button class="btn" id="toAll">Read all hundred again</button>
+      <button class="btn ghost" id="restart">Start from the beginning</button>
+    </div>
+    <p class="ps">P.S. Kaput. ♡</p>
+  </div>
+</section>
+
+<!-- GRID -->
+<section id="s-all" class="screen">
+  <div class="grid-wrap">
+    <div class="grid-head">
+      <h2 class="script">All hundred</h2>
+      <button class="btn ghost" id="gridBack" style="margin-top:0;padding:10px 22px">back</button>
+    </div>
+    <div id="gridBody"></div>
+  </div>
+</section>
+
+<!-- CHAPTER OVERLAY -->
+<div id="chapter">
+  <div class="cn" id="chN"></div>
+  <div class="ct script" id="chT"></div>
+  <div class="cs" id="chS"></div>
+</div>
+
+<script>
+const chapters = [
+  { t:`The way you love`, s:`the quiet, endless kind`, r:[
+    `You love quietly, without needing anyone to notice. Our kids will feel it before they can even name it.`,
+    `You never keep score. Love from you comes with no receipts.`,
+    `You would choose just me over every luxury in the world. Our kids will know they matter more than anything we own.`,
+    `You feel things deeply, so you will never brush off a tiny heartbreak as small.`,
+    `You understand people without them having to explain. Our kids will feel seen before they say a word.`,
+    `You stay through the hard conversations. They will always know you are not going anywhere.`,
+    `You hate being thanked, which means you give love for its own sake. That is the purest kind there is.`,
+    `You love me across a whole distance. Imagine how you will love someone sleeping in the next room.`,
+    `You make people feel safe enough to be soft.`,
+    `Your hugs (yes, I am already sure) will fix scraped knees faster than any bandaid.`,
+    `You will say I love you in a hundred little ways that are not words.`,
+    `You make even a phone call feel like home.`,
+    `You will be the first person they run to and the last voice they hear at night.`,
+    `You will love them through every version of themselves, the loud ones and the quiet ones.`,
+    `You love fiercely, but never loudly enough to make it about you.`
+  ]},
+  { t:`The way you protect`, s:`wings, never cages`, r:[
+    `You know what it costs to fight for your own freedom. Our kids will never have to.`,
+    `They will get to choose their own friends, because their mother fought for that right first.`,
+    `They will get to chase their own dreams, because you know exactly how much that means.`,
+    `You will be strict where it matters and gentle everywhere else.`,
+    `You will protect their hearts without ever caging their wings.`,
+    `You will build a home where nobody ever has to hide.`,
+    `You will make sure they never feel they have to earn your love.`,
+    `You will stand up for them in rooms they are too small to speak in.`,
+    `You will teach them to say no, and you will respect it when they do.`,
+    `You will be their safe place even when the world is not.`,
+    `You will trust them, and that trust will make them trustworthy.`,
+    `You will never let anyone dim their light, because you know how it felt when someone tried to dim yours.`,
+    `You will give them the freedom you dreamed of, and the love that makes freedom feel safe.`
+  ]},
+  { t:`Your strength`, s:`soft and unbreakable`, r:[
+    `You are studying CA while carrying more than anyone sees. They will grow up watching a woman who never gives up on herself.`,
+    `You will show them a girl can be soft and unbreakable at the same time.`,
+    `You keep going even on the days you are tired of keeping going.`,
+    `You will teach our daughter she can do anything, and our son to respect every woman who does.`,
+    `You fight for what is right even when it is hard, even at home.`,
+    `They will learn resilience just by watching you live.`,
+    `You have cried and still shown up the next morning. That is the strongest thing a person can do.`,
+    `You will teach them that falling down is not failing.`,
+    `You are building your own independence, so they will grow up knowing a woman can stand on her own feet.`,
+    `You will be living proof that being kind is not the same as being weak.`,
+    `You promise things and then you fight to keep them.`,
+    `You will show them that courage sometimes just looks like trying again tomorrow.`
+  ]},
+  { t:`Your heart`, s:`room for everyone`, r:[
+    `You take care of everyone in the room before yourself.`,
+    `You notice when someone goes quiet and you gently pull them back in.`,
+    `You will remember every friend's name, every teacher's name, every tiny worry they ever mention.`,
+    `You will never make them feel silly for being scared of the dark.`,
+    `You will celebrate their small wins like they are the biggest ones.`,
+    `You will be gentle with their mistakes, because you have been so gentle with mine.`,
+    `You forgive with your whole heart.`,
+    `You will teach them empathy without ever giving a lecture on it.`,
+    `You will make them feel like their feelings make sense.`,
+    `You will hold space for their tears without rushing them to stop.`,
+    `You make strangers feel welcome. Our home will be full of their friends.`,
+    `You will be patient on the days patience is hardest.`,
+    `Your heart is so big it will have room for every pet they beg us for. (We will negotiate on that one.)`
+  ]},
+  { t:`The little things`, s:`the ones only I know`, r:[
+    `Your angry face that melts into a smile in two seconds. They will spend years trying to make you mad and fail every time.`,
+    `Your rice ball face. They will inherit it, and I will have a whole family of rice balls.`,
+    `You fed me charcoal dumplings through a screen. They will never go a day hungry for food or for love.`,
+    `You will turn Kaput into their favourite word before they even know what it means.`,
+    `You will make up silly words with them, the way we made up pflight.`,
+    `Family pfit pics. Every outfit, every occasion, every year. You will make sure of it.`,
+    `You will be the mom who dresses up for every school function and makes it look effortless.`,
+    `You will sneak them tiramisu before dinner and pretend you did not.`,
+    `Sushi Sundays with tiny little chopsticks.`,
+    `You will make every birthday feel like the best day of their life.`,
+    `You will keep every single drawing they ever make.`,
+    `You will know exactly how they like their milk, their blanket, their pillow.`,
+    `You will sing to them, even if you swear you cannot sing.`,
+    `You will make up bedtime stories on the spot, and they will ask for the same one four hundred times.`,
+    `You will be the one who remembers which stuffed toy is the favourite.`,
+    `You will laugh at their terrible jokes like they are the funniest thing you have ever heard.`,
+    `You will put tiny notes in their lunch boxes.`,
+    `You will make Monday mornings feel a little less like Monday.`,
+    `You will let them be messy sometimes, because childhood should be.`
+  ]},
+  { t:`Your mind`, s:`brilliant, always`, r:[
+    `You are brilliant, and they will grow up thinking smart is just normal.`,
+    `You will help with their homework and somehow make maths feel fun.`,
+    `You will teach them about money early, because you will literally be a CA.`,
+    `You will raise curious kids by never shutting down a single why.`,
+    `You will teach them that learning is a privilege, because you fought for yours.`,
+    `You will answer their big questions honestly, even the hard ones.`,
+    `You will teach them to think for themselves, not just to obey.`,
+    `You will show them that ambition and kindness can live in the same person.`
+  ]},
+  { t:`You and me`, s:`the home we will build`, r:[
+    `You make me want to be a better man. You will make them want to be better people.`,
+    `You will teach them what real love looks like just by how we love each other.`,
+    `They will see their parents hold hands, laugh, and choose each other every day.`,
+    `They will grow up in a home where arguments end with I am sorry and a hug.`,
+    `You will remind me to slow down and be present with them.`,
+    `You will be my partner in every 3am feeding, every school run, every scary fever night.`,
+    `We will be the parents who still dance in the kitchen.`,
+    `They will hear the story of how we waited, and learn that love worth having is worth the wait.`,
+    `You will let them see you be soft with me, and they will learn that softness is safe.`,
+    `You will make our home feel like the place everyone wants to come back to.`,
+    `One day they will ride on the back of my 650, and you will be standing at the gate waving, pretending not to worry.`
+  ]},
+  { t:`The future`, s:`everything you fought for`, r:[
+    `You will be the mother you once needed.`,
+    `You will break every chain that was ever put around you, so they never have to wear one.`,
+    `They will grow up free, loved, and sure of themselves, and it will be because of you.`,
+    `When they are all grown up, they will still call you every day just to talk.`,
+    `They will bring their own kids to you, because no one hugs like you do.`,
+    `They will tell their friends my mom is my best friend, and mean it.`,
+    `They will carry your kindness into every room they ever walk into.`,
+    `You will look at them one day and see the whole life you fought for.`,
+    `And they will look at you and know, without a single doubt, that they were loved by the bravest, gentlest, most beautiful woman in the world. Just like I do.`
+  ]}
+];
+const roman = ['I','II','III','IV','V','VI','VII','VIII'];
+const cards = [];
+chapters.forEach((c,ci)=>c.r.forEach(text=>cards.push({n:cards.length+1, ci, text})));
+
+const $ = id => document.getElementById(id);
+let current = 's-envelope', prevScreen = 's-deck';
+function show(id){
+  if(id===current) return;
+  if(id==='s-all') prevScreen = current;
+  $(current).classList.remove('active');
+  $(id).classList.add('active');
+  $(id).scrollTop = 0;
+  current = id;
+}
+
+/* Envelope */
+const env = $('envelope');
+env.addEventListener('click',()=>{
+  if(env.classList.contains('open')) return;
+  env.classList.add('open');
+  $('envHint').style.opacity = 0;
+  burst(window.innerWidth/2, window.innerHeight/2, 14);
+  setTimeout(()=>show('s-letter'), 2600);
+});
+
+/* Deck */
+let i = 0, busy = false;
+const seenCh = new Set(), turned = new Set();
+const card = $('card');
+
+function render(){
+  const c = cards[i], ch = chapters[c.ci];
+  $('num').textContent = c.n;
+  $('bnum').textContent = c.n;
+  $('txt').textContent = c.text;
+  $('bchap').textContent = ch.t;
+  $('chapLabel').textContent = ch.t;
+  $('counter').textContent = c.n + ' of 100';
+  $('bar').style.width = c.n + '%';
+  $('prev').disabled = i===0;
+  const last = i===cards.length-1;
+  $('next').style.display = last ? 'none' : '';
+  $('swipeHint').style.display = last ? 'none' : '';
+  $('finishBtn').style.display = last ? 'inline-block' : 'none';
+}
+
+function showChapter(ci){
+  return new Promise(res=>{
+    seenCh.add(ci);
+    const o = $('chapter');
+    $('chN').textContent = 'Chapter ' + roman[ci];
+    $('chT').textContent = chapters[ci].t;
+    $('chS').textContent = chapters[ci].s;
+    o.classList.add('show');
+    let done = false;
+    const close = ()=>{ if(done) return; done = true; o.classList.remove('show'); o.removeEventListener('click',close); setTimeout(res,450); };
+    o.addEventListener('click',close);
+    setTimeout(close, 3000);
+  });
+}
+
+async function go(dir){
+  if(busy) return;
+  const ni = i + dir;
+  if(ni < 0) return;
+  if(ni >= cards.length){ show('s-finale'); return; }
+  busy = true;
+  const out = dir>0 ? -1 : 1;
+  try{
+    await card.animate([
+      {transform:'translateX(0) rotate(0)',opacity:1},
+      {transform:`translateX(${out*120}%) rotate(${out*12}deg)`,opacity:0}
+    ],{duration:420,easing:'cubic-bezier(.5,0,.75,0)',fill:'forwards'}).finished;
+  }catch(e){}
+  card.classList.add('instant'); card.classList.remove('flipped');
+  i = ni; render();
+  void card.offsetWidth; card.classList.remove('instant');
+  if(!seenCh.has(cards[i].ci)) await showChapter(cards[i].ci);
+  try{
+    await card.animate([
+      {transform:`translateX(${-out*120}%) rotate(${-out*12}deg)`,opacity:0},
+      {transform:'translateX(0) rotate(0)',opacity:1}
+    ],{duration:520,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).finished;
+  }catch(e){}
+  busy = false;
+}
+
+let suppress = false;
+card.addEventListener('click',()=>{
+  if(suppress || busy){ suppress = false; return; }
+  card.classList.toggle('flipped');
+  if(card.classList.contains('flipped') && !turned.has(i)){
+    turned.add(i);
+    const r = card.getBoundingClientRect();
+    burst(r.left + r.width/2, r.top + r.height/2, i===cards.length-1 ? 30 : 8);
+  }
+});
+let sx=0, sy=0;
+card.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+card.addEventListener('touchend',e=>{
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)){ suppress = true; go(dx<0?1:-1); setTimeout(()=>suppress=false,350); }
+});
+$('next').onclick = ()=>go(1);
+$('prev').onclick = ()=>go(-1);
+$('finishBtn').onclick = ()=>show('s-finale');
+document.addEventListener('keydown',e=>{
+  if(current!=='s-deck') return;
+  if(e.key==='ArrowRight') go(1);
+  else if(e.key==='ArrowLeft') go(-1);
+  else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); card.click(); }
+});
+
+$('beginBtn').onclick = async ()=>{
+  render(); show('s-deck');
+  await new Promise(r=>setTimeout(r,500));
+  if(!seenCh.has(0)) await showChapter(0);
+};
+$('restart').onclick = ()=>{
+  i = 0; card.classList.add('instant'); card.classList.remove('flipped'); render();
+  void card.offsetWidth; card.classList.remove('instant'); show('s-deck');
+};
+
+/* Grid */
+function buildGrid(){
+  const body = $('gridBody'); let html = '';
+  chapters.forEach((c,ci)=>{
+    html += `<h3 class="grid-ch script">${c.t}</h3><div class="grid">`;
+    cards.filter(x=>x.ci===ci).forEach(x=>{ html += `<div class="tile"><div class="tn script">${x.n}</div><p>${x.text}</p></div>`; });
+    html += `</div>`;
+  });
+  body.innerHTML = html;
+}
+buildGrid();
+$('allBtn').onclick = ()=>show('s-all');
+$('toAll').onclick = ()=>show('s-all');
+$('gridBack').onclick = ()=>show(prevScreen==='s-all' ? 's-deck' : prevScreen);
+
+/* Hearts */
+function burst(x,y,n){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for(let k=0;k<n;k++){
+    const h = document.createElement('span');
+    h.className = 'floatheart';
+    h.textContent = Math.random()<.5 ? '♥' : '♡';
+    h.style.left = x+'px'; h.style.top = y+'px';
+    h.style.fontSize = (14+Math.random()*16)+'px';
+    document.body.appendChild(h);
+    const a = Math.random()*Math.PI*2, d = 60+Math.random()*130;
+    h.animate([
+      {transform:'translate(-50%,-50%) scale(.4)',opacity:1},
+      {transform:`translate(calc(-50% + ${Math.cos(a)*d}px), calc(-50% + ${Math.sin(a)*d-60}px)) scale(1.1)`,opacity:0}
+    ],{duration:1400+Math.random()*600,easing:'cubic-bezier(.2,.8,.3,1)',fill:'forwards'}).onfinish = ()=>h.remove();
+  }
+}
+
+/* Petals */
+(function(){
+  const cv = $('petals'), ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, dpr, petals = [];
+  const cols = ['#eab6ae','#f2c9c1','#e3a3a0','#f6d8cf','#d99a98'];
+  function size(){
+    dpr = Math.min(window.devicePixelRatio||1,2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W*dpr; cv.height = H*dpr; cv.style.width = W+'px'; cv.style.height = H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function mk(top){
+    return { x:Math.random()*W, y: top ? -20 : Math.random()*H, s:6+Math.random()*9,
+      vy:.25+Math.random()*.55, sway:.4+Math.random()*.9, ph:Math.random()*6.28,
+      rot:Math.random()*6.28, vr:(Math.random()-.5)*.02, c:cols[(Math.random()*cols.length)|0], a:.45+Math.random()*.4 };
+  }
+  size(); addEventListener('resize',size);
+  const N = reduce ? 0 : (W<600 ? 18 : 30);
+  for(let k=0;k<N;k++) petals.push(mk(false));
+  function draw(p){
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.globalAlpha = p.a; ctx.fillStyle = p.c;
+    ctx.beginPath(); ctx.moveTo(0,-p.s);
+    ctx.bezierCurveTo(p.s*.9,-p.s*.6,p.s*.7,p.s*.7,0,p.s);
+    ctx.bezierCurveTo(-p.s*.7,p.s*.7,-p.s*.9,-p.s*.6,0,-p.s);
+    ctx.fill(); ctx.restore();
+  }
+  let t = 0;
+  function loop(){
+    t += 1; ctx.clearRect(0,0,W,H);
+    for(const p of petals){
+      p.y += p.vy; p.x += Math.sin(t*.01+p.ph)*p.sway*.4; p.rot += p.vr;
+      if(p.y > H+20) Object.assign(p, mk(true));
+      draw(p);
+    }
+    requestAnimationFrame(loop);
+  }
+  if(N) loop();
+})();
+</script>
+</body>
+</html>
